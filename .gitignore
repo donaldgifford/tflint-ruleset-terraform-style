@@ -37,3 +37,6 @@ private.key
 
 # GoReleaser
 dist/
+
+# Build artifacts
+build/

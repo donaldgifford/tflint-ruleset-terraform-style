@@ -47,7 +47,8 @@ terraform.md: $(STITCHMD) terraform-summary $(wildcard styleguides/terraform/src
 
 .PHONY: build
 build:
-	go build -o $(PLUGIN_NAME)
+	mkdir -p build/bin
+	go build -o build/bin/$(PLUGIN_NAME)
 
 .PHONY: test
 test:
@@ -65,11 +66,11 @@ go-lint:
 .PHONY: install
 install: build
 	mkdir -p $(PLUGIN_DIR)
-	mv $(PLUGIN_NAME) $(PLUGIN_DIR)/
+	cp build/bin/$(PLUGIN_NAME) $(PLUGIN_DIR)/
 
 .PHONY: clean
 clean:
-	rm -f $(PLUGIN_NAME)
+	rm -rf build/
 	rm -f coverage.out coverage.html
 
 # =============================================================================

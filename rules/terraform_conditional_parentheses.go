@@ -146,7 +146,14 @@ func (r *TerraformConditionalParenthesesRule) walkConditionalExpr(runner tflint.
 			return err
 		}
 	}
-	return r.walkExprs(runner, []hclsyntax.Expression{e.Condition, e.TrueResult, e.FalseResult})
+	// Pass through inParens for nested conditionals in TrueResult/FalseResult
+	// since they're part of the same parenthesized expression
+	for _, expr := range []hclsyntax.Expression{e.Condition, e.TrueResult, e.FalseResult} {
+		if err := r.walkExpression(runner, expr, inParens); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (r *TerraformConditionalParenthesesRule) walkExprs(runner tflint.Runner, exprs []hclsyntax.Expression) error {

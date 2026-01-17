@@ -89,11 +89,11 @@ func (r *TerraformTautologicalNamingRule) Check(runner tflint.Runner) error {
 				continue
 			}
 			if containsWord(typeWords, nameWord) {
-				if err := runner.EmitIssue(
-					r,
-					fmt.Sprintf("Resource name %q contains word %q which already appears in the resource type %q", resourceName, nameWord, resourceType),
-					block.DefRange,
-				); err != nil {
+				msg := fmt.Sprintf(
+					"Resource name %q contains word %q which already appears in the resource type %q",
+					resourceName, nameWord, resourceType,
+				)
+				if err := runner.EmitIssue(r, msg, block.DefRange); err != nil {
 					return err
 				}
 				break // Only report once per resource
