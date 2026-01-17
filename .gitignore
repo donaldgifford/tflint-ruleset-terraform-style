@@ -7,6 +7,7 @@
 *.dll
 *.so
 *.dylib
+tflint-ruleset-terraform-style
 
 # Test binary, built with `go test -c`
 *.test
@@ -33,3 +34,6 @@ go.work.sum
 
 # Private GPG Key
 private.key
+
+# GoReleaser
+dist/
