@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       tag: ${{ steps.bump.outputs.version }}
-      bumped: ${{ steps.bump.outputs.bumped }}
+      skipped: ${{ steps.bump.outputs.skipped }}
     steps:
       - uses: actions/checkout@v5
         with:
@@ -40,7 +40,7 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     needs: bump-version
-    if: needs.bump-version.outputs.bumped == 'true'
+    if: needs.bump-version.outputs.skipped != 'true'
     steps:
       - uses: actions/checkout@v5
         with:
