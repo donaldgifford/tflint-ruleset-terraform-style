@@ -1,9 +1,11 @@
+// Package main provides the entry point for the tflint-ruleset-terraform-style plugin.
 package main
 
 import (
-	"github.com/donaldgifford/tflint-ruleset-terraform-style/rules"
 	"github.com/terraform-linters/tflint-plugin-sdk/plugin"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
+
+	"github.com/donaldgifford/tflint-ruleset-terraform-style/rules"
 )
 
 func main() {

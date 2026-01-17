@@ -66,7 +66,7 @@ declare -A LABEL_DESCRIPTIONS=(
 
 # Script directory and repo root
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 # File paths
 LABELER_FILE="${REPO_ROOT}/.github/labeler.yml"

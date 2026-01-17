@@ -32,22 +32,22 @@ func NewTerraformTautologicalNamingRule() *TerraformTautologicalNamingRule {
 }
 
 // Name returns the rule name.
-func (r *TerraformTautologicalNamingRule) Name() string {
+func (*TerraformTautologicalNamingRule) Name() string {
 	return "terraform_tautological_naming"
 }
 
 // Enabled returns whether the rule is enabled by default.
-func (r *TerraformTautologicalNamingRule) Enabled() bool {
+func (*TerraformTautologicalNamingRule) Enabled() bool {
 	return true
 }
 
 // Severity returns the rule severity.
-func (r *TerraformTautologicalNamingRule) Severity() tflint.Severity {
+func (*TerraformTautologicalNamingRule) Severity() tflint.Severity {
 	return tflint.WARNING
 }
 
 // Link returns the rule documentation link.
-func (r *TerraformTautologicalNamingRule) Link() string {
+func (*TerraformTautologicalNamingRule) Link() string {
 	return "https://github.com/donaldgifford/tflint-ruleset-terraform-style/blob/main/docs/rules/terraform_tautological_naming.md"
 }
 

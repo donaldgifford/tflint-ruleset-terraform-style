@@ -1,3 +1,4 @@
+// Package rules contains the TFLint rules for Terraform style enforcement.
 package rules
 
 import "github.com/terraform-linters/tflint-plugin-sdk/tflint"

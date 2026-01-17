@@ -8,7 +8,7 @@ import (
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 )
 
-// tildeDelimiterRegex matches comment lines using tildes as delimiters (e.g., # ~~~)
+// tildeDelimiterRegex matches comment lines using tildes as delimiters (e.g., # ~~~).
 var tildeDelimiterRegex = regexp.MustCompile(`^#\s*~{3,}`)
 
 // TerraformCommentDelimiterRule checks that section delimiters use dashes, not tildes.
@@ -22,22 +22,22 @@ func NewTerraformCommentDelimiterRule() *TerraformCommentDelimiterRule {
 }
 
 // Name returns the rule name.
-func (r *TerraformCommentDelimiterRule) Name() string {
+func (*TerraformCommentDelimiterRule) Name() string {
 	return "terraform_comment_delimiter"
 }
 
 // Enabled returns whether the rule is enabled by default.
-func (r *TerraformCommentDelimiterRule) Enabled() bool {
+func (*TerraformCommentDelimiterRule) Enabled() bool {
 	return true
 }
 
 // Severity returns the rule severity.
-func (r *TerraformCommentDelimiterRule) Severity() tflint.Severity {
+func (*TerraformCommentDelimiterRule) Severity() tflint.Severity {
 	return tflint.WARNING
 }
 
 // Link returns the rule documentation link.
-func (r *TerraformCommentDelimiterRule) Link() string {
+func (*TerraformCommentDelimiterRule) Link() string {
 	return "https://github.com/donaldgifford/tflint-ruleset-terraform-style/blob/main/docs/rules/terraform_comment_delimiter.md"
 }
 

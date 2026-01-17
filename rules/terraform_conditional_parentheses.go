@@ -18,22 +18,22 @@ func NewTerraformConditionalParenthesesRule() *TerraformConditionalParenthesesRu
 }
 
 // Name returns the rule name.
-func (r *TerraformConditionalParenthesesRule) Name() string {
+func (*TerraformConditionalParenthesesRule) Name() string {
 	return "terraform_conditional_parentheses"
 }
 
 // Enabled returns whether the rule is enabled by default.
-func (r *TerraformConditionalParenthesesRule) Enabled() bool {
+func (*TerraformConditionalParenthesesRule) Enabled() bool {
 	return true
 }
 
 // Severity returns the rule severity.
-func (r *TerraformConditionalParenthesesRule) Severity() tflint.Severity {
+func (*TerraformConditionalParenthesesRule) Severity() tflint.Severity {
 	return tflint.WARNING
 }
 
 // Link returns the rule documentation link.
-func (r *TerraformConditionalParenthesesRule) Link() string {
+func (*TerraformConditionalParenthesesRule) Link() string {
 	return "https://github.com/donaldgifford/tflint-ruleset-terraform-style/blob/main/docs/rules/terraform_conditional_parentheses.md"
 }
 
@@ -108,115 +108,81 @@ func (r *TerraformConditionalParenthesesRule) checkExpression(runner tflint.Runn
 func (r *TerraformConditionalParenthesesRule) walkExpression(runner tflint.Runner, expr hclsyntax.Expression, inParens bool) error {
 	switch e := expr.(type) {
 	case *hclsyntax.ConditionalExpr:
-		// Check if this conditional spans multiple lines
-		exprRange := e.Range()
-		if exprRange.Start.Line != exprRange.End.Line && !inParens {
-			if err := runner.EmitIssue(
-				r,
-				"Multi-line conditional expressions should be wrapped in parentheses",
-				exprRange,
-			); err != nil {
-				return err
-			}
-		}
-		// Check nested expressions - propagate inParens context to nested conditionals
-		// within a parenthesized expression
-		if err := r.walkExpression(runner, e.Condition, inParens); err != nil {
-			return err
-		}
-		if err := r.walkExpression(runner, e.TrueResult, inParens); err != nil {
-			return err
-		}
-		if err := r.walkExpression(runner, e.FalseResult, inParens); err != nil {
-			return err
-		}
-
+		return r.walkConditionalExpr(runner, e, inParens)
 	case *hclsyntax.ParenthesesExpr:
-		// Mark that we're inside parentheses
-		if err := r.walkExpression(runner, e.Expression, true); err != nil {
-			return err
-		}
-
+		return r.walkExpression(runner, e.Expression, true)
 	case *hclsyntax.TupleConsExpr:
-		for _, elem := range e.Exprs {
-			if err := r.walkExpression(runner, elem, false); err != nil {
-				return err
-			}
-		}
-
+		return r.walkExprs(runner, e.Exprs)
 	case *hclsyntax.ObjectConsExpr:
-		for _, item := range e.Items {
-			if err := r.walkExpression(runner, item.KeyExpr, false); err != nil {
-				return err
-			}
-			if err := r.walkExpression(runner, item.ValueExpr, false); err != nil {
-				return err
-			}
-		}
-
+		return r.walkObjectConsExpr(runner, e)
 	case *hclsyntax.FunctionCallExpr:
-		for _, arg := range e.Args {
-			if err := r.walkExpression(runner, arg, false); err != nil {
-				return err
-			}
-		}
-
+		return r.walkExprs(runner, e.Args)
 	case *hclsyntax.IndexExpr:
-		if err := r.walkExpression(runner, e.Collection, false); err != nil {
-			return err
-		}
-		if err := r.walkExpression(runner, e.Key, false); err != nil {
-			return err
-		}
-
+		return r.walkExprs(runner, []hclsyntax.Expression{e.Collection, e.Key})
 	case *hclsyntax.SplatExpr:
-		if err := r.walkExpression(runner, e.Source, false); err != nil {
-			return err
-		}
-
+		return r.walkExpression(runner, e.Source, false)
 	case *hclsyntax.ForExpr:
-		if err := r.walkExpression(runner, e.CollExpr, false); err != nil {
-			return err
-		}
-		if e.KeyExpr != nil {
-			if err := r.walkExpression(runner, e.KeyExpr, false); err != nil {
-				return err
-			}
-		}
-		if err := r.walkExpression(runner, e.ValExpr, false); err != nil {
-			return err
-		}
-		if e.CondExpr != nil {
-			if err := r.walkExpression(runner, e.CondExpr, false); err != nil {
-				return err
-			}
-		}
-
+		return r.walkForExpr(runner, e)
 	case *hclsyntax.BinaryOpExpr:
-		if err := r.walkExpression(runner, e.LHS, false); err != nil {
-			return err
-		}
-		if err := r.walkExpression(runner, e.RHS, false); err != nil {
-			return err
-		}
-
+		return r.walkExprs(runner, []hclsyntax.Expression{e.LHS, e.RHS})
 	case *hclsyntax.UnaryOpExpr:
-		if err := r.walkExpression(runner, e.Val, false); err != nil {
-			return err
-		}
-
+		return r.walkExpression(runner, e.Val, false)
 	case *hclsyntax.TemplateExpr:
-		for _, part := range e.Parts {
-			if err := r.walkExpression(runner, part, false); err != nil {
-				return err
-			}
-		}
-
+		return r.walkExprs(runner, e.Parts)
 	case *hclsyntax.TemplateWrapExpr:
-		if err := r.walkExpression(runner, e.Wrapped, false); err != nil {
+		return r.walkExpression(runner, e.Wrapped, false)
+	}
+	return nil
+}
+
+func (r *TerraformConditionalParenthesesRule) walkConditionalExpr(runner tflint.Runner, e *hclsyntax.ConditionalExpr, inParens bool) error {
+	exprRange := e.Range()
+	if exprRange.Start.Line != exprRange.End.Line && !inParens {
+		if err := runner.EmitIssue(
+			r,
+			"Multi-line conditional expressions should be wrapped in parentheses",
+			exprRange,
+		); err != nil {
 			return err
 		}
 	}
+	return r.walkExprs(runner, []hclsyntax.Expression{e.Condition, e.TrueResult, e.FalseResult})
+}
 
+func (r *TerraformConditionalParenthesesRule) walkExprs(runner tflint.Runner, exprs []hclsyntax.Expression) error {
+	for _, expr := range exprs {
+		if err := r.walkExpression(runner, expr, false); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *TerraformConditionalParenthesesRule) walkObjectConsExpr(runner tflint.Runner, e *hclsyntax.ObjectConsExpr) error {
+	for _, item := range e.Items {
+		if err := r.walkExprs(runner, []hclsyntax.Expression{item.KeyExpr, item.ValueExpr}); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *TerraformConditionalParenthesesRule) walkForExpr(runner tflint.Runner, e *hclsyntax.ForExpr) error {
+	if err := r.walkExpression(runner, e.CollExpr, false); err != nil {
+		return err
+	}
+	if e.KeyExpr != nil {
+		if err := r.walkExpression(runner, e.KeyExpr, false); err != nil {
+			return err
+		}
+	}
+	if err := r.walkExpression(runner, e.ValExpr, false); err != nil {
+		return err
+	}
+	if e.CondExpr != nil {
+		if err := r.walkExpression(runner, e.CondExpr, false); err != nil {
+			return err
+		}
+	}
 	return nil
 }

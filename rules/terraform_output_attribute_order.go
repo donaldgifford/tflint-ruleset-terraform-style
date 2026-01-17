@@ -8,7 +8,7 @@ import (
 )
 
 // TerraformOutputAttributeOrderRule checks that output attributes are in the correct order.
-// Expected order: description, value, sensitive, depends_on
+// Expected order: description, value, sensitive, depends_on.
 type TerraformOutputAttributeOrderRule struct {
 	tflint.DefaultRule
 }
@@ -19,22 +19,22 @@ func NewTerraformOutputAttributeOrderRule() *TerraformOutputAttributeOrderRule {
 }
 
 // Name returns the rule name.
-func (r *TerraformOutputAttributeOrderRule) Name() string {
+func (*TerraformOutputAttributeOrderRule) Name() string {
 	return "terraform_output_attribute_order"
 }
 
 // Enabled returns whether the rule is enabled by default.
-func (r *TerraformOutputAttributeOrderRule) Enabled() bool {
+func (*TerraformOutputAttributeOrderRule) Enabled() bool {
 	return true
 }
 
 // Severity returns the rule severity.
-func (r *TerraformOutputAttributeOrderRule) Severity() tflint.Severity {
+func (*TerraformOutputAttributeOrderRule) Severity() tflint.Severity {
 	return tflint.WARNING
 }
 
 // Link returns the rule documentation link.
-func (r *TerraformOutputAttributeOrderRule) Link() string {
+func (*TerraformOutputAttributeOrderRule) Link() string {
 	return "https://github.com/donaldgifford/tflint-ruleset-terraform-style/blob/main/docs/rules/terraform_output_attribute_order.md"
 }
 

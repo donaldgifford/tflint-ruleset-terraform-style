@@ -74,10 +74,8 @@ resource "aws_instance" "test" {
 						t.Errorf("Expected rule %s, got %s", rule.Name(), issue.Rule.Name())
 					}
 				}
-			} else {
-				if len(runner.Issues) != 0 {
-					t.Errorf("Expected no issues, got %d", len(runner.Issues))
-				}
+			} else if len(runner.Issues) != 0 {
+				t.Errorf("Expected no issues, got %d", len(runner.Issues))
 			}
 		})
 	}

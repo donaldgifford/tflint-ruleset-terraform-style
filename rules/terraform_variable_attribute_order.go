@@ -8,7 +8,7 @@ import (
 )
 
 // TerraformVariableAttributeOrderRule checks that variable attributes are in the correct order.
-// Expected order: description, type, default, validation, sensitive, nullable
+// Expected order: description, type, default, validation, sensitive, nullable.
 type TerraformVariableAttributeOrderRule struct {
 	tflint.DefaultRule
 }
@@ -19,22 +19,22 @@ func NewTerraformVariableAttributeOrderRule() *TerraformVariableAttributeOrderRu
 }
 
 // Name returns the rule name.
-func (r *TerraformVariableAttributeOrderRule) Name() string {
+func (*TerraformVariableAttributeOrderRule) Name() string {
 	return "terraform_variable_attribute_order"
 }
 
 // Enabled returns whether the rule is enabled by default.
-func (r *TerraformVariableAttributeOrderRule) Enabled() bool {
+func (*TerraformVariableAttributeOrderRule) Enabled() bool {
 	return true
 }
 
 // Severity returns the rule severity.
-func (r *TerraformVariableAttributeOrderRule) Severity() tflint.Severity {
+func (*TerraformVariableAttributeOrderRule) Severity() tflint.Severity {
 	return tflint.WARNING
 }
 
 // Link returns the rule documentation link.
-func (r *TerraformVariableAttributeOrderRule) Link() string {
+func (*TerraformVariableAttributeOrderRule) Link() string {
 	return "https://github.com/donaldgifford/tflint-ruleset-terraform-style/blob/main/docs/rules/terraform_variable_attribute_order.md"
 }
 

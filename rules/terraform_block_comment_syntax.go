@@ -19,22 +19,22 @@ func NewTerraformBlockCommentSyntaxRule() *TerraformBlockCommentSyntaxRule {
 }
 
 // Name returns the rule name.
-func (r *TerraformBlockCommentSyntaxRule) Name() string {
+func (*TerraformBlockCommentSyntaxRule) Name() string {
 	return "terraform_block_comment_syntax"
 }
 
 // Enabled returns whether the rule is enabled by default.
-func (r *TerraformBlockCommentSyntaxRule) Enabled() bool {
+func (*TerraformBlockCommentSyntaxRule) Enabled() bool {
 	return true
 }
 
 // Severity returns the rule severity.
-func (r *TerraformBlockCommentSyntaxRule) Severity() tflint.Severity {
+func (*TerraformBlockCommentSyntaxRule) Severity() tflint.Severity {
 	return tflint.WARNING
 }
 
 // Link returns the rule documentation link.
-func (r *TerraformBlockCommentSyntaxRule) Link() string {
+func (*TerraformBlockCommentSyntaxRule) Link() string {
 	return "https://github.com/donaldgifford/tflint-ruleset-terraform-style/blob/main/docs/rules/terraform_block_comment_syntax.md"
 }
 

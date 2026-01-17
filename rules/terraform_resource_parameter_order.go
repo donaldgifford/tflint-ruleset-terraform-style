@@ -10,7 +10,7 @@ import (
 )
 
 // TerraformResourceParameterOrderRule checks that resource parameters are in the correct order.
-// Expected order: count/for_each -> regular parameters -> nested blocks -> lifecycle -> depends_on
+// Expected order: count/for_each -> regular parameters -> nested blocks -> lifecycle -> depends_on.
 type TerraformResourceParameterOrderRule struct {
 	tflint.DefaultRule
 }
@@ -21,26 +21,26 @@ func NewTerraformResourceParameterOrderRule() *TerraformResourceParameterOrderRu
 }
 
 // Name returns the rule name.
-func (r *TerraformResourceParameterOrderRule) Name() string {
+func (*TerraformResourceParameterOrderRule) Name() string {
 	return "terraform_resource_parameter_order"
 }
 
 // Enabled returns whether the rule is enabled by default.
-func (r *TerraformResourceParameterOrderRule) Enabled() bool {
+func (*TerraformResourceParameterOrderRule) Enabled() bool {
 	return true
 }
 
 // Severity returns the rule severity.
-func (r *TerraformResourceParameterOrderRule) Severity() tflint.Severity {
+func (*TerraformResourceParameterOrderRule) Severity() tflint.Severity {
 	return tflint.WARNING
 }
 
 // Link returns the rule documentation link.
-func (r *TerraformResourceParameterOrderRule) Link() string {
+func (*TerraformResourceParameterOrderRule) Link() string {
 	return "https://github.com/donaldgifford/tflint-ruleset-terraform-style/blob/main/docs/rules/terraform_resource_parameter_order.md"
 }
 
-// Category constants for ordering
+// Category constants for ordering.
 const (
 	categoryMetaArg   = 1 // count, for_each, provider
 	categoryAttribute = 2 // regular attributes
@@ -49,7 +49,7 @@ const (
 	categoryDependsOn = 5 // depends_on
 )
 
-// metaArguments are special arguments that should come first
+// metaArguments are special arguments that should come first.
 var metaArguments = map[string]bool{
 	"count":    true,
 	"for_each": true,
@@ -91,7 +91,7 @@ type orderedItem struct {
 }
 
 func (r *TerraformResourceParameterOrderRule) checkBlock(runner tflint.Runner, block *hclsyntax.Block) error {
-	var items []orderedItem
+	items := make([]orderedItem, 0, len(block.Body.Attributes)+len(block.Body.Blocks))
 
 	// Collect attributes
 	for name, attr := range block.Body.Attributes {
