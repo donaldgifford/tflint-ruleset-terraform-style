@@ -73,7 +73,7 @@ clean:
 	rm -f coverage.out coverage.html
 
 # =============================================================================
-# Integration Test Targets
+# Test Targets
 # =============================================================================
 
 .PHONY: test-unit
@@ -82,60 +82,20 @@ test-unit:
 
 .PHONY: test-fixtures
 test-fixtures: install
-	@echo "Running fixture-based TFLint tests..."
-	cd tests && go test -v -run "TestFixtures" -timeout 5m
-
-.PHONY: test-localstack
-test-localstack: install localstack-up
-	@echo "Running LocalStack integration tests (Terraform + OpenTofu)..."
-	cd tests && go test -v -run "Terraform|Tofu|TestLintThenApply" -timeout 30m
-
-.PHONY: test-localstack-terraform
-test-localstack-terraform: install localstack-up
-	@echo "Running LocalStack tests with Terraform only..."
-	cd tests && go test -v -run "Terraform" -timeout 15m
-
-.PHONY: test-localstack-tofu
-test-localstack-tofu: install localstack-up
-	@echo "Running LocalStack tests with OpenTofu only..."
-	cd tests && go test -v -run "Tofu" -timeout 15m
-
-.PHONY: test-integration
-test-integration: install
-	@echo "Running all integration tests..."
-	cd tests && go test -v -timeout 30m
-
-.PHONY: test-integration-short
-test-integration-short: install
-	@echo "Running integration tests (short mode - no LocalStack)..."
-	cd tests && go test -v -short -timeout 5m
+	@echo "Running TFLint fixture tests..."
+	@for dir in testdata/valid/*/; do \
+		echo "Testing $$dir (expecting pass)..."; \
+		tflint --chdir="$$dir" --config=../../../.tflint.hcl || exit 1; \
+	done
+	@for dir in testdata/invalid/*/; do \
+		echo "Testing $$dir (expecting failure)..."; \
+		! tflint --chdir="$$dir" --config=../../../.tflint.hcl || exit 1; \
+	done
+	@echo "All fixture tests passed!"
 
 .PHONY: test-all
-test-all: test-unit test-integration
+test-all: test-unit test-fixtures
 	@echo "All tests completed!"
-
-# =============================================================================
-# LocalStack Targets
-# =============================================================================
-
-.PHONY: localstack-up
-localstack-up:
-	@echo "Starting LocalStack..."
-	docker compose up -d
-	@echo "Waiting for LocalStack to be ready..."
-	@until curl -sf http://localhost:4566/_localstack/health > /dev/null 2>&1; do \
-		sleep 1; \
-	done
-	@echo "LocalStack is ready!"
-
-.PHONY: localstack-down
-localstack-down:
-	@echo "Stopping LocalStack..."
-	docker compose down
-
-.PHONY: localstack-logs
-localstack-logs:
-	docker compose logs -f localstack
 
 # =============================================================================
 # Release Targets

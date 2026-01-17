@@ -76,10 +76,16 @@ jobs:
       - name: Test against fixtures
         run: |
           # Valid configs should pass
-          tflint --chdir=testdata/valid --config=../../.tflint.hcl
+          for dir in testdata/valid/*/; do
+            echo "Testing $dir (expecting pass)..."
+            tflint --chdir="$dir" --config=../../../.tflint.hcl
+          done
 
           # Invalid configs should fail with expected errors
-          ! tflint --chdir=testdata/invalid --config=../../.tflint.hcl
+          for dir in testdata/invalid/*/; do
+            echo "Testing $dir (expecting failure)..."
+            ! tflint --chdir="$dir" --config=../../../.tflint.hcl
+          done
   build:
     name: Build
     runs-on: ubuntu-latest
