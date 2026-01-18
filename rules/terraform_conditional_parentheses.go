@@ -1,11 +1,16 @@
 package rules
 
 import (
+	"fmt"
+
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/terraform-linters/tflint-plugin-sdk/hclext"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 )
+
+// maxExpressionDepth limits recursion depth to prevent stack overflow on deeply nested expressions.
+const maxExpressionDepth = 100
 
 // TerraformConditionalParenthesesRule checks that multi-line conditional expressions are wrapped in parentheses.
 type TerraformConditionalParenthesesRule struct {
@@ -102,40 +107,49 @@ func (r *TerraformConditionalParenthesesRule) checkExpression(runner tflint.Runn
 		return nil
 	}
 
-	return r.walkExpression(runner, syntaxExpr, inParens)
+	return r.walkExpression(runner, syntaxExpr, inParens, 0)
 }
 
-func (r *TerraformConditionalParenthesesRule) walkExpression(runner tflint.Runner, expr hclsyntax.Expression, inParens bool) error {
+func (r *TerraformConditionalParenthesesRule) walkExpression(runner tflint.Runner, expr hclsyntax.Expression, inParens bool, depth int) error {
+	if depth > maxExpressionDepth {
+		return fmt.Errorf("expression nesting too deep (max %d)", maxExpressionDepth)
+	}
+
 	switch e := expr.(type) {
 	case *hclsyntax.ConditionalExpr:
-		return r.walkConditionalExpr(runner, e, inParens)
+		return r.walkConditionalExpr(runner, e, inParens, depth)
 	case *hclsyntax.ParenthesesExpr:
-		return r.walkExpression(runner, e.Expression, true)
+		return r.walkExpression(runner, e.Expression, true, depth+1)
 	case *hclsyntax.TupleConsExpr:
-		return r.walkExprs(runner, e.Exprs)
+		return r.walkExprs(runner, e.Exprs, depth+1)
 	case *hclsyntax.ObjectConsExpr:
-		return r.walkObjectConsExpr(runner, e)
+		return r.walkObjectConsExpr(runner, e, depth+1)
 	case *hclsyntax.FunctionCallExpr:
-		return r.walkExprs(runner, e.Args)
+		return r.walkExprs(runner, e.Args, depth+1)
 	case *hclsyntax.IndexExpr:
-		return r.walkExprs(runner, []hclsyntax.Expression{e.Collection, e.Key})
+		return r.walkExprs(runner, []hclsyntax.Expression{e.Collection, e.Key}, depth+1)
 	case *hclsyntax.SplatExpr:
-		return r.walkExpression(runner, e.Source, false)
+		return r.walkExpression(runner, e.Source, false, depth+1)
 	case *hclsyntax.ForExpr:
-		return r.walkForExpr(runner, e)
+		return r.walkForExpr(runner, e, depth+1)
 	case *hclsyntax.BinaryOpExpr:
-		return r.walkExprs(runner, []hclsyntax.Expression{e.LHS, e.RHS})
+		return r.walkExprs(runner, []hclsyntax.Expression{e.LHS, e.RHS}, depth+1)
 	case *hclsyntax.UnaryOpExpr:
-		return r.walkExpression(runner, e.Val, false)
+		return r.walkExpression(runner, e.Val, false, depth+1)
 	case *hclsyntax.TemplateExpr:
-		return r.walkExprs(runner, e.Parts)
+		return r.walkExprs(runner, e.Parts, depth+1)
 	case *hclsyntax.TemplateWrapExpr:
-		return r.walkExpression(runner, e.Wrapped, false)
+		return r.walkExpression(runner, e.Wrapped, false, depth+1)
 	}
 	return nil
 }
 
-func (r *TerraformConditionalParenthesesRule) walkConditionalExpr(runner tflint.Runner, e *hclsyntax.ConditionalExpr, inParens bool) error {
+func (r *TerraformConditionalParenthesesRule) walkConditionalExpr(
+	runner tflint.Runner,
+	e *hclsyntax.ConditionalExpr,
+	inParens bool,
+	depth int,
+) error {
 	exprRange := e.Range()
 	if exprRange.Start.Line != exprRange.End.Line && !inParens {
 		if err := runner.EmitIssue(
@@ -149,45 +163,45 @@ func (r *TerraformConditionalParenthesesRule) walkConditionalExpr(runner tflint.
 	// Pass through inParens for nested conditionals in TrueResult/FalseResult
 	// since they're part of the same parenthesized expression
 	for _, expr := range []hclsyntax.Expression{e.Condition, e.TrueResult, e.FalseResult} {
-		if err := r.walkExpression(runner, expr, inParens); err != nil {
+		if err := r.walkExpression(runner, expr, inParens, depth+1); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (r *TerraformConditionalParenthesesRule) walkExprs(runner tflint.Runner, exprs []hclsyntax.Expression) error {
+func (r *TerraformConditionalParenthesesRule) walkExprs(runner tflint.Runner, exprs []hclsyntax.Expression, depth int) error {
 	for _, expr := range exprs {
-		if err := r.walkExpression(runner, expr, false); err != nil {
+		if err := r.walkExpression(runner, expr, false, depth); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (r *TerraformConditionalParenthesesRule) walkObjectConsExpr(runner tflint.Runner, e *hclsyntax.ObjectConsExpr) error {
+func (r *TerraformConditionalParenthesesRule) walkObjectConsExpr(runner tflint.Runner, e *hclsyntax.ObjectConsExpr, depth int) error {
 	for _, item := range e.Items {
-		if err := r.walkExprs(runner, []hclsyntax.Expression{item.KeyExpr, item.ValueExpr}); err != nil {
+		if err := r.walkExprs(runner, []hclsyntax.Expression{item.KeyExpr, item.ValueExpr}, depth); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func (r *TerraformConditionalParenthesesRule) walkForExpr(runner tflint.Runner, e *hclsyntax.ForExpr) error {
-	if err := r.walkExpression(runner, e.CollExpr, false); err != nil {
+func (r *TerraformConditionalParenthesesRule) walkForExpr(runner tflint.Runner, e *hclsyntax.ForExpr, depth int) error {
+	if err := r.walkExpression(runner, e.CollExpr, false, depth); err != nil {
 		return err
 	}
 	if e.KeyExpr != nil {
-		if err := r.walkExpression(runner, e.KeyExpr, false); err != nil {
+		if err := r.walkExpression(runner, e.KeyExpr, false, depth); err != nil {
 			return err
 		}
 	}
-	if err := r.walkExpression(runner, e.ValExpr, false); err != nil {
+	if err := r.walkExpression(runner, e.ValExpr, false, depth); err != nil {
 		return err
 	}
 	if e.CondExpr != nil {
-		if err := r.walkExpression(runner, e.CondExpr, false); err != nil {
+		if err := r.walkExpression(runner, e.CondExpr, false, depth); err != nil {
 			return err
 		}
 	}
