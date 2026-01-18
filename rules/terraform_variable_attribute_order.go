@@ -85,7 +85,8 @@ func (r *TerraformVariableAttributeOrderRule) Check(runner tflint.Runner) error 
 
 func (r *TerraformVariableAttributeOrderRule) checkAttributeOrder(runner tflint.Runner, varName string, block *hclext.Block) error {
 	// Build a map of attribute name to line number
-	attrLines := make(map[string]int)
+	// Pre-allocate with expected capacity to avoid map growth
+	attrLines := make(map[string]int, len(variableAttributeOrder))
 	for name, attr := range block.Body.Attributes {
 		attrLines[name] = attr.Range.Start.Line
 	}

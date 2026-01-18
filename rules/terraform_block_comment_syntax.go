@@ -1,12 +1,15 @@
 package rules
 
 import (
-	"strings"
+	"bytes"
 
 	"github.com/hashicorp/hcl/v2"
 	"github.com/hashicorp/hcl/v2/hclsyntax"
 	"github.com/terraform-linters/tflint-plugin-sdk/tflint"
 )
+
+// blockCommentPrefix is the byte sequence that identifies block comments.
+var blockCommentPrefix = []byte("/*")
 
 // TerraformBlockCommentSyntaxRule checks that block comments (/* */) are not used.
 type TerraformBlockCommentSyntaxRule struct {
@@ -65,8 +68,7 @@ func (r *TerraformBlockCommentSyntaxRule) checkFile(runner tflint.Runner, filena
 			continue
 		}
 
-		tokenStr := string(token.Bytes)
-		if strings.HasPrefix(tokenStr, "/*") {
+		if bytes.HasPrefix(token.Bytes, blockCommentPrefix) {
 			if err := runner.EmitIssue(
 				r,
 				"Block comments (/* */) are not allowed; use # instead",
